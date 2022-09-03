@@ -36,7 +36,7 @@ PlayMode::PlayMode() {
 	// Standard RGB (the goal)
 	try {
 		load_png(data_path("../assets/RGB.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		std::cout << e.what();
 	}
 	assert(palette_size.x == 4 && palette_size.y == 1);
@@ -51,7 +51,7 @@ PlayMode::PlayMode() {
 	// The player - gray, yellow, blue
 	try {
 		load_png(data_path("../assets/PlayerPalette.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		std::cout << e.what();
 	}
 	assert(palette_size.x == 4 && palette_size.y == 1);
@@ -66,7 +66,7 @@ PlayMode::PlayMode() {
 	// Brick 1 - brown & gray
 	try {
 		load_png(data_path("../assets/Brick1.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		std::cout << e.what();
 	}
 	assert(palette_size.x == 4 && palette_size.y == 1);
@@ -80,7 +80,7 @@ PlayMode::PlayMode() {
 	// Brick 2 - gray & green
 	try {
 		load_png(data_path("../assets/Brick2.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		std::cout << e.what();
 	}
 	assert(palette_size.x == 4 && palette_size.y == 1);
@@ -112,7 +112,7 @@ PlayMode::PlayMode() {
 	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	try {
 		load_png(data_path("../assets/Player.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		std::cout << e.what();
 	}
 	assert(palette_size.x == 8 && palette_size.y == 8);
@@ -136,7 +136,7 @@ PlayMode::PlayMode() {
 	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	try {
 		load_png(data_path("../assets/Goal.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		std::cout << e.what();
 	}
 	assert(palette_size.x == 8 && palette_size.y == 8);
@@ -160,7 +160,7 @@ PlayMode::PlayMode() {
 	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	try {
 		load_png(data_path("../assets/Brick.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
-	} catch (std::runtime_error e) {
+	} catch (std::runtime_error& e) {
 		std::cout << e.what();
 	}
 	assert(palette_size.x == 8 && palette_size.y == 8);
