@@ -26,8 +26,6 @@ struct PlayMode : Mode {
 	bool down = false;
 	bool victory = false;
 	bool failure = false;
-	float speed = 0.0f;
-	uint32_t level = 3;
 
 	//----- drawing handled by PPU466 -----
 	PPU466 ppu;

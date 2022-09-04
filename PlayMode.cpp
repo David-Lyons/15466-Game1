@@ -8,9 +8,11 @@
 
 #include <random>
 #include <time.h>
+#include <fstream>
 
 #include "data_path.hpp"
 #include "load_save_png.hpp"
+#include "read_write_chunk.hpp"
 
 struct surface {
 	glm::vec2 bottomleft;
@@ -25,173 +27,40 @@ PlayMode::PlayMode() {
 	// Based on https://stackoverflow.com/questions/28656004/c-random-doesnt-workreturns-same-value-always
 	srand((unsigned int)time(NULL));
 
-	// Set up vectors to hold load_png results
-	glm::uvec2 palette_size = glm::uvec2(0, 0);
-	std::vector< glm::u8vec4 > palette_data;
-
-	// Set up my palettes
 	// Background sky blue
 	ppu.background_color = glm::u8vec3(150, 200, 250);
 
-	// Standard RGB (the goal)
-	try {
-		load_png(data_path("../assets/RGB.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error& e) {
-		std::cout << e.what();
+	// Blank out all palettes, tiles, background tiles, and sprites
+	for (uint32_t i = 0; i < 8; i++) {
+		ppu.palette_table[i] = { glm::u8vec4(0,0,0,0), glm::u8vec4(0,0,0,0),
+			glm::u8vec4(0,0,0,0), glm::u8vec4(0,0,0,0) };
 	}
-	assert(palette_size.x == 4 && palette_size.y == 1);
-
-	ppu.palette_table[0] = {
-		glm::u8vec4(0,0,0,0),
-		glm::u8vec4(palette_data[1][0],palette_data[1][1],palette_data[1][2],255),
-		glm::u8vec4(palette_data[2][0],palette_data[2][1],palette_data[2][2],255),
-		glm::u8vec4(palette_data[3][0],palette_data[3][1],palette_data[3][2],255),
-	};
-
-	// The player - gray, yellow, blue
-	try {
-		load_png(data_path("../assets/PlayerPalette.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error& e) {
-		std::cout << e.what();
-	}
-	assert(palette_size.x == 4 && palette_size.y == 1);
-
-	ppu.palette_table[1] = {
-		glm::u8vec4(0,0,0,0),
-		glm::u8vec4(palette_data[1][0],palette_data[1][1],palette_data[1][2],255),
-		glm::u8vec4(palette_data[2][0],palette_data[2][1],palette_data[2][2],255),
-		glm::u8vec4(palette_data[3][0],palette_data[3][1],palette_data[3][2],255),
-	};
-
-	// Brick 1 - brown & gray
-	try {
-		load_png(data_path("../assets/Brick1.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error& e) {
-		std::cout << e.what();
-	}
-	assert(palette_size.x == 4 && palette_size.y == 1);
-	ppu.palette_table[2] = {
-		glm::u8vec4(0,0,0,0),
-		glm::u8vec4(palette_data[1][0],palette_data[1][1],palette_data[1][2],255),
-		glm::u8vec4(palette_data[2][0],palette_data[2][1],palette_data[2][2],255),
-		glm::u8vec4(palette_data[3][0],palette_data[3][1],palette_data[3][2],255),
-	};
-
-	// Brick 2 - gray & green
-	try {
-		load_png(data_path("../assets/Brick2.png"), &palette_size, &palette_data, OriginLocation::UpperLeftOrigin);
-	} catch (std::runtime_error& e) {
-		std::cout << e.what();
-	}
-	assert(palette_size.x == 4 && palette_size.y == 1);
-	ppu.palette_table[3] = {
-		glm::u8vec4(0,0,0,0),
-		glm::u8vec4(palette_data[1][0],palette_data[1][1],palette_data[1][2],255),
-		glm::u8vec4(palette_data[2][0],palette_data[2][1],palette_data[2][2],255),
-		glm::u8vec4(palette_data[3][0],palette_data[3][1],palette_data[3][2],255),
-	};
-
-	// Black and white palette
-	ppu.palette_table[4] = {
-		glm::u8vec4(0,0,0,0),
-		glm::u8vec4(0,0,0,255),
-		glm::u8vec4(255,255,255,255),
-		glm::u8vec4(255,255,255,0),
-	};
-
-	// Set up the tiles
-	// Blank out everything
-	std::array<uint8_t, 8> bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	std::array<uint8_t, 8> bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	for (uint32_t i = 0; i < 256; i++) {
-		ppu.tile_table[i] = { bit0, bit1 };
+		ppu.tile_table[i] = { { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 } };
 	}
-
-	// Player tile
-	bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	try {
-		load_png(data_path("../assets/Player.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
-	} catch (std::runtime_error& e) {
-		std::cout << e.what();
-	}
-	assert(palette_size.x == 8 && palette_size.y == 8);
-	for (uint32_t row = 0; row < palette_size.y; row++) {
-		for (uint32_t col = 0; col < palette_size.x; col++) {
-			glm::u8vec4 color = palette_data[row * palette_size.x + col];
-			if (color[0]) {
-				bit0[row] |= (1 << col);
-			} else if (color[1]) {
-				bit1[row] |= (1 << col);
-			} else if (color[2]) {
-				bit0[row] |= (1 << col);
-				bit1[row] |= (1 << col);
-			}
-		}
-	}
-	ppu.tile_table[1] = { bit0, bit1 };
-
-	// Goal tile
-	bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	try {
-		load_png(data_path("../assets/Goal.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
-	} catch (std::runtime_error& e) {
-		std::cout << e.what();
-	}
-	assert(palette_size.x == 8 && palette_size.y == 8);
-	for (uint32_t row = 0; row < palette_size.y; row++) {
-		for (uint32_t col = 0; col < palette_size.x; col++) {
-			glm::u8vec4 color = palette_data[row * palette_size.x + col];
-			if (color[0]) {
-				bit0[row] |= (1 << col);
-			} else if (color[1]) {
-				bit1[row] |= (1 << col);
-			} else if (color[2]) {
-				bit0[row] |= (1 << col);
-				bit1[row] |= (1 << col);
-			}
-		}
-	}
-	ppu.tile_table[2] = { bit0, bit1 };
-
-	// Brick tile
-	bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	try {
-		load_png(data_path("../assets/Brick.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
-	} catch (std::runtime_error& e) {
-		std::cout << e.what();
-	}
-	assert(palette_size.x == 8 && palette_size.y == 8);
-	for (uint32_t row = 0; row < palette_size.y; row++) {
-		for (uint32_t col = 0; col < palette_size.x; col++) {
-			glm::u8vec4 color = palette_data[row * palette_size.x + col];
-			if (color[0]) {
-				bit0[row] |= (1 << col);
-			}
-			else if (color[1]) {
-				bit1[row] |= (1 << col);
-			}
-			else if (color[2]) {
-				bit0[row] |= (1 << col);
-				bit1[row] |= (1 << col);
-			}
-		}
-	}
-	ppu.tile_table[3] = { bit0, bit1 };
-
-	// Black and white tiles
-	bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	bit1 = { 255, 255, 255, 255, 255, 255, 255, 255 };
-	ppu.tile_table[4] = { bit0, bit1 };
-
-	// clear background and sprites
 	for (uint32_t i = 0; i < PPU466::BackgroundWidth * PPU466::BackgroundHeight; i++) {
 		ppu.background[i] = 0;
 	}
 	for (uint32_t i = 0; i < 64; i++) {
 		ppu.sprites[i] = { 0, 250, 0, 0 };
+	}
+
+	// Load runtime assets into PPU
+	std::ifstream datafile(data_path("../assets/RuntimeAssets.bin"), std::ios::in);
+	std::vector< PPU466::Palette > palettes;
+	std::vector< PPU466::Tile > tiles;
+	std::vector< PPU466::Sprite > sprites;
+	read_chunk(datafile, "PALT", &palettes);
+	read_chunk(datafile, "TILE", &tiles);
+	read_chunk(datafile, "SPRT", &sprites);
+	for (uint32_t i = 0; i < palettes.size(); i++) {
+		ppu.palette_table[i] = palettes[i];
+	}
+	for (uint32_t i = 0; i < tiles.size(); i++) {
+		ppu.tile_table[i] = tiles[i];
+	}
+	for (uint32_t i = 0; i < sprites.size(); i++) {
+		ppu.sprites[i] = sprites[i];
 	}
 
 	// Create maze
@@ -435,13 +304,6 @@ float tryMoveUp(float goal, glm::vec2 position) {
 	return goal;
 }
 
-bool tryJump(float speed) {
-	if (speed == 0.0f) {
-		return true;
-	}
-	return false;
-}
-
 bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
 
 	if (evt.type == SDL_KEYDOWN) {
@@ -456,9 +318,6 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			}
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_UP) {
-			/*if (tryJump(speed)) {
-				speed = 50.0f;
-			};*/
 			if (!down) {
 				up = true;
 			}
@@ -517,6 +376,7 @@ void PlayMode::update(float elapsed) {
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//--- set ppu state based on game state ---
 	if (victory) {
+		// We won the game. Print "Win!"
 		ppu.background_color = { 0, 0, 0 };
 		for (uint32_t i = 0; i < PPU466::BackgroundWidth * PPU466::BackgroundHeight; i++) {
 			ppu.background[i] = 0;
@@ -580,6 +440,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		ppu.draw(drawable_size);
 		return;
 	} else if (failure) {
+		// We lost the game. Print "Lose..."
 		ppu.background_color = { 0, 0, 0 };
 		for (uint32_t i = 0; i < PPU466::BackgroundWidth * PPU466::BackgroundHeight; i++) {
 			ppu.background[i] = 0;
@@ -640,8 +501,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		ppu.background[13 * 64 + 25] = (4 << 8) + 4;
 		ppu.background[13 * 64 + 27] = (4 << 8) + 4;
 
-		ppu.sprites[0] = { 0, 250, 0, 0 };
-		ppu.sprites[1] = { 0, 250, 0, 0 };
+		ppu.sprites[0].y = 250;
+		ppu.sprites[1].y = 250;
 		ppu.draw(drawable_size);
 		return;
 	}
@@ -649,14 +510,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//player sprite:
 	ppu.sprites[0].x = int8_t(position.x);
 	ppu.sprites[0].y = int8_t(position.y);
-	ppu.sprites[0].index = 1;
-	ppu.sprites[0].attributes = 0b1000001; // palette 1
 
 	//goal sprite:
 	ppu.sprites[1].x = int8_t(goal_position.x);
 	ppu.sprites[1].y = int8_t(goal_position.y);
-	ppu.sprites[1].index = 2;
-	ppu.sprites[1].attributes = 0b1000000; // palette 0
 
 	//--- actually draw ---
 	ppu.draw(drawable_size);
