@@ -46,7 +46,7 @@ PlayMode::PlayMode() {
 	}
 
 	// Load runtime assets into PPU
-	std::ifstream datafile(data_path("../assets/RuntimeAssets.bin"), std::ios::in);
+	std::ifstream datafile(data_path("RuntimeAssets.bin"), std::ios::in);
 	std::vector< PPU466::Palette > palettes;
 	std::vector< PPU466::Tile > tiles;
 	std::vector< PPU466::Sprite > sprites;
@@ -367,10 +367,22 @@ void PlayMode::update(float elapsed) {
 		goal_position.x = 24.0f + (float)(rand() % 7) * 32.0f;
 		goal_position.y = 24.0f + (float)(rand() % 7) * 32.0f;
 	}
-	if (left) position.x -= tryMoveLeft(60.0f * elapsed, position);
-	if (right) position.x += tryMoveRight(60.0f * elapsed, position);
-	if (up) position.y += tryMoveUp(60.0f * elapsed, position);
-	if (down) position.y -= tryMoveDown(60.0f * elapsed, position);
+	if (left) {
+		position.x -= tryMoveLeft(60.0f * elapsed, position);
+		ppu.sprites[0].index = 6;
+	}
+	if (right) {
+		position.x += tryMoveRight(60.0f * elapsed, position);
+		ppu.sprites[0].index = 7;
+	}
+	if (up) {
+		position.y += tryMoveUp(60.0f * elapsed, position);
+		ppu.sprites[0].index = 1;
+	}
+	if (down) {
+		position.y -= tryMoveDown(60.0f * elapsed, position);
+		ppu.sprites[0].index = 5;
+	}
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {

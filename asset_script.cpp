@@ -185,6 +185,88 @@ void create_assets() {
 	bit1 = { 255, 255, 255, 255, 255, 255, 255, 255 };
 	tiles.push_back({ bit0, bit1 });
 
+	// Other player directions
+	bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	try {
+		load_png(data_path("../assets/PlayerDown.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
+	}
+	catch (std::runtime_error& e) {
+		std::cout << e.what();
+	}
+	assert(palette_size.x == 8 && palette_size.y == 8);
+
+	for (uint32_t row = 0; row < palette_size.y; row++) {
+		for (uint32_t col = 0; col < palette_size.x; col++) {
+			glm::u8vec4 color = palette_data[row * palette_size.x + col];
+			if (color[0]) {
+				bit0[row] |= (1 << col);
+			}
+			else if (color[1]) {
+				bit1[row] |= (1 << col);
+			}
+			else if (color[2]) {
+				bit0[row] |= (1 << col);
+				bit1[row] |= (1 << col);
+			}
+		}
+	}
+	tiles.push_back({ bit0, bit1 });
+
+	bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	try {
+		load_png(data_path("../assets/PlayerLeft.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
+	}
+	catch (std::runtime_error& e) {
+		std::cout << e.what();
+	}
+	assert(palette_size.x == 8 && palette_size.y == 8);
+
+	for (uint32_t row = 0; row < palette_size.y; row++) {
+		for (uint32_t col = 0; col < palette_size.x; col++) {
+			glm::u8vec4 color = palette_data[row * palette_size.x + col];
+			if (color[0]) {
+				bit0[row] |= (1 << col);
+			}
+			else if (color[1]) {
+				bit1[row] |= (1 << col);
+			}
+			else if (color[2]) {
+				bit0[row] |= (1 << col);
+				bit1[row] |= (1 << col);
+			}
+		}
+	}
+	tiles.push_back({ bit0, bit1 });
+
+	bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	try {
+		load_png(data_path("../assets/PlayerRight.png"), &palette_size, &palette_data, OriginLocation::LowerLeftOrigin);
+	}
+	catch (std::runtime_error& e) {
+		std::cout << e.what();
+	}
+	assert(palette_size.x == 8 && palette_size.y == 8);
+
+	for (uint32_t row = 0; row < palette_size.y; row++) {
+		for (uint32_t col = 0; col < palette_size.x; col++) {
+			glm::u8vec4 color = palette_data[row * palette_size.x + col];
+			if (color[0]) {
+				bit0[row] |= (1 << col);
+			}
+			else if (color[1]) {
+				bit1[row] |= (1 << col);
+			}
+			else if (color[2]) {
+				bit0[row] |= (1 << col);
+				bit1[row] |= (1 << col);
+			}
+		}
+	}
+	tiles.push_back({ bit0, bit1 });
+
 	/*
 	* -------------------------------------
 	* --------------Sprites----------------
@@ -202,11 +284,11 @@ void create_assets() {
 	*/
 
 	assert(palettes.size() == 5);
-	assert(tiles.size() == 5);
+	assert(tiles.size() == 8);
 	assert(sprites.size() == 2);
 
 	// Learned how to create an ofstream from https://stackoverflow.com/questions/52803734/c-ostream-not-creating-a-new-file
-	std::ofstream datafile(data_path("../assets/RuntimeAssets.bin"), std::ios::out);
+	std::ofstream datafile(data_path("RuntimeAssets.bin"), std::ios::out);
 
 	write_chunk("PALT", palettes, &datafile);
 	write_chunk("TILE", tiles, &datafile);
